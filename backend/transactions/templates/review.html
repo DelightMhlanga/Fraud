@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Review Transactions</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: auto;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #999;
+        }
+        button {
+            margin: 2px;
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="text-align:center;">🧾 Pending Transactions</h2>
+    <table>
+        <tr>
+            <th>User ID</th>
+            <th>Amount</th>
+            <th>Location</th>
+            <th>Action</th>
+        </tr>
+        {% for tx in transactions %}
+        <tr>
+            <form method="POST" action="{{ url_for('transactions.scan') }}">
+                <td>{{ tx.user_id }}<input type="hidden" name="user_id" value="{{ tx.user_id }}"></td>
+                <td>{{ tx.amount }}<input type="hidden" name="amount" value="{{ tx.amount }}"></td>
+                <td>{{ tx.location }}<input type="hidden" name="location" value="{{ tx.location }}"></td>
+                <td>
+                    <button name="decision" value="approve" type="submit">✅ Approve</button>
+                    <button name="decision" value="deny" type="submit">❌ Deny</button>
+                    <button name="decision" value="scan" type="submit">🔍 Scan</button>
+                </td>
+            </form>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

@@ -1,0 +1,39 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    padding: 20px;
+}
+
+h1 {
+    color: #d9534f;
+    text-align: center;
+    margin-bottom: 0px;  /* 🔽 Reduce space below the heading */
+}
+
+canvas {
+    display: block;
+    margin: 0 auto;
+    margin-top: 0px;       /* 🔽 Remove extra space above the chart */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background-color: #fff;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+th {
+    background-color: #d9534f;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}

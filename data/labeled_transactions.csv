@@ -1,0 +1,6 @@
+user_id,amount,location,is_fraud
+U001,200,Masvingo,0
+U002,1500,Harare,1
+test_user,50,Unknown,1
+U003,3000,Russia,1
+U004,100,Bulawayo,0

@@ -1,0 +1,7 @@
+[
+  {"user_id": "U001", "amount": 200, "location": "Masvingo"},
+  {"user_id": "U002", "amount": 1500, "location": "Harare"},
+  {"user_id": "test_user", "amount": 50, "location": "Unknown"},
+  {"user_id": "U003", "amount": 3000, "location": "Russia"},
+  {"user_id": "", "amount": 100, "location": "Bulawayo"}
+]

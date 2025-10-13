@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transaction Report</title>
+    <style>
+        table { border-collapse: collapse; width: 90%; margin: auto; }
+        th, td { padding: 10px; border: 1px solid #999; text-align: center; }
+        h2, h3 { text-align: center; }
+        form { text-align: center; margin-bottom: 20px; }
+        .no-print { display: block; }
+        @media print {
+            .no-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <h2>📊 Transaction Report</h2>
+
+    <!-- Filter Form -->
+    <form method="GET" action="{{ url_for('transactions.report') }}">
+        <label>Status:</label>
+        <select name="status">
+            <option value="">All</option>
+            <option value="FRAUD" {% if request.args.get('status') == 'FRAUD' %}selected{% endif %}>FRAUD</option>
+            <option value="APPROVED" {% if request.args.get('status') == 'APPROVED' %}selected{% endif %}>APPROVED</option>
+            <option value="DENIED" {% if request.args.get('status') == 'DENIED' %}selected{% endif %}>DENIED</option>
+            <option value="NORMAL" {% if request.args.get('status') == 'NORMAL' %}selected{% endif %}>NORMAL</option>
+        </select>
+        <label>Date:</label>
+        <input type="date" name="date" value="{{ request.args.get('date', '') }}">
+        <button type="submit">🔍 Filter</button>
+    </form>
+
+    <!-- Summary Table -->
+    <table id="reportTable">
+        <tr style="background-color:#f0f0f0;">
+            <th>Total</th>
+            <th>FRAUD</th>
+            <th>APPROVED</th>
+            <th>DENIED</th>
+            <th>NORMAL</th>
+        </tr>
+        <tr>
+            <td>{{ summary.total }}</td>
+            <td>{{ summary.fraud }}</td>
+            <td>{{ summary.approved }}</td>
+            <td>{{ summary.denied }}</td>
+            <td>{{ summary.normal }}</td>
+        </tr>
+    </table>
+
+    <!-- Export Buttons (hidden in PDF) -->
+    <div class="no-print" style="text-align:center; margin-top:20px;">
+        <a href="{{ url_for('transactions.report_pdf') }}">📄 Export as PDF</a>
+        <button onclick="exportTableToExcel('fullReportTable', 'fraud_report')">📊 Export to Excel</button>
+    </div>
+
+    <!-- Detailed Transactions Table -->
+    <br>
+    <table id="fullReportTable">
+        <tr>
+            <th>Date</th>
+            <th>User ID</th>
+            <th>Amount</th>
+            <th>Location</th>
+            <th>Status</th>
+        </tr>
+        {% for row in report %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+            <td>{{ row[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- Excel Export Script -->
+    <script>
+    function exportTableToExcel(tableID, filename = ''){
+        const tableSelect = document.getElementById(tableID);
+        const tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+        const filenameFinal = filename ? filename + '.xls' : 'excel_data.xls';
+        const downloadLink = document.createElement("a");
+        document.body.appendChild(downloadLink);
+
+        if (navigator.msSaveOrOpenBlob) {
+            const blob = new Blob(['\ufeff', tableHTML], { type: 'application/vnd.ms-excel' });
+            navigator.msSaveOrOpenBlob(blob, filenameFinal);
+        } else {
+            downloadLink.href = 'data:application/vnd.ms-excel,' + tableHTML;
+            downloadLink.download = filenameFinal;
+            downloadLink.click();
+        }
+    }
+    </script>
+</body>
+</html>
