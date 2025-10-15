@@ -8,7 +8,7 @@ import smtplib
 from email.mime.text import MIMEText
 from twilio.rest import Client
 from backend.transactions.routes import transactions_bp
-from auth.routes import auth_bp, login_manager
+from backend.auth.routes import auth_bp, login_manager
 
 app = Flask(
     __name__,
