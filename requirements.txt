@@ -1,5 +1,5 @@
 Flask
-flask_login
+flask_login==0.6.2
 joblib
 scikit-learn
 pandas
