@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import LoginManager, login_user
-from auth.models import Admin
+from backend.auth.models import Admin
 import os
 
 auth_bp = Blueprint(
