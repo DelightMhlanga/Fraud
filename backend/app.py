@@ -10,8 +10,7 @@ from twilio.rest import Client
 from backend.transactions.routes import transactions_bp
 
 # Import login blueprint
-from auth.routes import auth_bp, login_manager
-
+from backend.auth.routes import auth_bp, login_manager
 app = Flask(
     __name__,
     template_folder='frontend/templates',
