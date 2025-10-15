@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_login import LoginManager
 import joblib
 import os
@@ -8,9 +8,8 @@ import smtplib
 from email.mime.text import MIMEText
 from twilio.rest import Client
 from backend.transactions.routes import transactions_bp
+from auth.routes import auth_bp, login_manager
 
-# Import login blueprint
-from backend.auth.routes import auth_bp, login_manager
 app = Flask(
     __name__,
     template_folder='frontend/templates',
@@ -25,11 +24,14 @@ login_manager.init_app(app)
 app.register_blueprint(auth_bp)
 app.register_blueprint(transactions_bp)
 
-
 # Load model and encoder
 model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models'))
 model = joblib.load(os.path.join(model_path, 'fraud_model.pkl'))
 encoder = joblib.load(os.path.join(model_path, 'location_encoder.pkl'))
+
+# Attach model and encoder to app config for blueprint access
+app.config['MODEL'] = model
+app.config['ENCODER'] = encoder
 
 # API key for authentication
 API_KEY = "your_secret_key_here"
@@ -73,6 +75,10 @@ def send_sms_alert(user_id, amount, location):
         print(f"📲 SMS sent: {message.sid}")
     except Exception as e:
         print(f"❌ SMS alert failed: {e}")
+
+@app.route('/')
+def home():
+    return render_template('submit.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
