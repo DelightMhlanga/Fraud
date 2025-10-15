@@ -1,6 +1,7 @@
 flask==2.3.3
 flask_login==0.6.2
 werkzeug==2.3.7
+pdfkit==1.0.0
 joblib
 scikit-learn
 pandas
