@@ -7,7 +7,7 @@ import csv
 import smtplib
 from email.mime.text import MIMEText
 from twilio.rest import Client
-from transactions.routes import transactions_bp
+from backend.transactions.routes import transactions_bp
 
 # Import login blueprint
 from auth.routes import auth_bp, login_manager
