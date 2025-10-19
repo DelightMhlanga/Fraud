@@ -76,9 +76,6 @@ def send_sms_alert(user_id, amount, location):
     except Exception as e:
         print(f"❌ SMS alert failed: {e}")
 
-@app.route('/')
-def home():
-    return render_template('submit.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
