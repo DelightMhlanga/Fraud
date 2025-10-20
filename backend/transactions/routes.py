@@ -36,10 +36,10 @@ EMAIL_SENDER = "delightmhlanga82@gmail.com"
 EMAIL_RECEIVER = "delightdube341@gmail.com"
 EMAIL_PASSWORD = "lfsiycvdpsazudgk"
 
-TWILIO_SID = "AC037ce44d192c69227320c8c599c69c16"
-TWILIO_TOKEN = "a2cdd91236f6f9f3c2d0853613d01ede"
-TWILIO_NUMBER = "+16204624903"
-RECIPIENT_NUMBER = "+263786928638"
+TWILIO_SID = ""
+TWILIO_TOKEN = ""
+TWILIO_NUMBER = ""
+RECIPIENT_NUMBER = ""
 
 def send_verification_email(user_id, amount, location, timestamp):
     subject = "🚨 Transaction Verification Needed"
@@ -92,13 +92,7 @@ def submit_transaction():
         status = "FRAUD" if prediction else "NORMAL"
 
         if status == "FRAUD":
-            try:
-                sms_body = f"⚠️ Fraud detected: {user_id}, ${amount}, {location}"
-                Client(TWILIO_SID, TWILIO_TOKEN).messages.create(
-                    body=sms_body,
-                    from_=TWILIO_NUMBER,
-                    to=RECIPIENT_NUMBER
-                )
+            try:  
                 send_verification_email(user_id, amount, location, timestamp)
                 send_email(user_id, amount, location)  # ✅ Added email alert here
             except Exception as e:
@@ -163,15 +157,7 @@ def scan():
 
     if status == "FRAUD":
         try:
-            # SMS via Twilio
-            twilio_sid = "AC037ce44d192c69227320c8c599c69c16"
-            twilio_token =  "a2cdd91236f6f9f3c2d0853613d01ede"
-            twilio_number = "+16204624903"
-            target_number =  "+263786928638"
-            sms_body = f"⚠️ Fraud detected: {user_id}, ${amount}, {location}"
-            Client(twilio_sid, twilio_token).messages.create(
-                body=sms_body, from_=twilio_number, to=target_number)
-
+          
             # Email verification
             send_verification_email(user_id, amount, location, timestamp)
 

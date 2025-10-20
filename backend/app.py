@@ -6,7 +6,6 @@ from datetime import datetime
 import csv
 import smtplib
 from email.mime.text import MIMEText
-from twilio.rest import Client
 from backend.transactions.routes import transactions_bp
 from backend.auth.routes import auth_bp, login_manager
 
@@ -46,11 +45,7 @@ EMAIL_SENDER = "delightmhlanga82@gmail.com"
 EMAIL_RECEIVER = "delightdube341@gmail.com"
 EMAIL_PASSWORD = "lfsiycvdpsazudgk"
 
-# SMS alert configuration
-TWILIO_SID = "AC037ce44d192c69227320c8c599c69c16"
-TWILIO_TOKEN = "a2cdd91236f6f9f3c2d0853613d01ede"
-TWILIO_NUMBER = "+16204624903"
-RECIPIENT_NUMBER = "+263786928638"
+
 
 def send_email_alert(user_id, amount, location):
     subject = "🚨 Fraud Alert"
@@ -69,17 +64,6 @@ def send_email_alert(user_id, amount, location):
     except Exception as e:
         print(f"❌ Email alert failed: {e}")
 
-def send_sms_alert(user_id, amount, location):
-    try:
-        client = Client(TWILIO_SID, TWILIO_TOKEN)
-        message = client.messages.create(
-            body=f"🚨 Fraud Alert!\nUser: {user_id}\nAmount: {amount}\nLocation: {location}",
-            from_=TWILIO_NUMBER,
-            to=RECIPIENT_NUMBER
-        )
-        print(f"📲 SMS sent: {message.sid}")
-    except Exception as e:
-        print(f"❌ SMS alert failed: {e}")
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -110,8 +94,7 @@ def predict():
         if prediction:
             print(f"[ALERT] Fraud detected! User: {user_id}, Amount: {amount}, Location: {location}")
             send_email_alert(user_id, amount, location)
-            send_sms_alert(user_id, amount, location)
-
+           
         return jsonify({
             'is_fraud': bool(prediction),
             'message': 'Fraudulent transaction' if prediction else 'Transaction appears normal'
