@@ -8,6 +8,7 @@ import pdfkit
 import smtplib
 from email.mime.text import MIMEText
 from twilio.rest import Client
+from backend.transactions.email import send_email
 
 transactions_bp = Blueprint('transactions', __name__, template_folder='templates')
 
@@ -40,9 +41,10 @@ TWILIO_TOKEN = "a2cdd91236f6f9f3c2d0853613d01ede"
 TWILIO_NUMBER = "+16204624903"
 RECIPIENT_NUMBER = "+263786928638"
 
-# ✅ Send Verification Email
 def send_verification_email(user_id, amount, location, timestamp):
     subject = "🚨 Transaction Verification Needed"
+    base_url = "https://fraud-wkgv.onrender.com"
+
     body = f"""
     A transaction was flagged as potentially fraudulent:<br>
     <strong>User:</strong> {user_id}<br>
@@ -50,8 +52,8 @@ def send_verification_email(user_id, amount, location, timestamp):
     <strong>Location:</strong> {location}<br>
     <strong>Time:</strong> {timestamp}<br><br>
     Please confirm:<br>
-    <a href="http://10.50.5.53:5000/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=yes">✅ Yes, it's me</a><br>
-    <a href="http://10.50.5.53:5000/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=no">❌ No, not me</a>
+    <a href="{base_url}/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=yes">✅ Yes, it's me</a><br>
+    <a href="{base_url}/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=no">❌ No, not me</a>
     """
 
     msg = MIMEText(body, 'html')
@@ -98,6 +100,7 @@ def submit_transaction():
                     to=RECIPIENT_NUMBER
                 )
                 send_verification_email(user_id, amount, location, timestamp)
+                send_email(user_id, amount, location)  # ✅ Added email alert here
             except Exception as e:
                 print(f"❌ Error sending fraud alerts: {e}")
 
@@ -117,6 +120,7 @@ def submit_transaction():
                                message=message)
 
     return render_template('submit.html')
+
 @transactions_bp.route('/review')
 def review():
     csv_path = os.path.join(os.path.dirname(__file__), '..', 'pending_transactions.csv')
