@@ -43,7 +43,7 @@ API_KEY = "your_secret_key_here"
 # Email alert configuration
 EMAIL_SENDER = "delightmhlanga82@gmail.com"
 EMAIL_RECEIVER = "delightdube341@gmail.com"
-EMAIL_PASSWORD = "lfsiycvdpsazudgk"
+EMAIL_PASSWORD = "myfhzobogrficln"
 
 
 
