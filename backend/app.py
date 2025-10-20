@@ -22,7 +22,12 @@ app.secret_key = 'your_secret_key_here'
 # Register login manager and blueprint
 login_manager.init_app(app)
 app.register_blueprint(auth_bp)
-app.register_blueprint(transactions_bp)
+app.register_blueprint(transactions_bp, url_prefix='/transactions')
+
+# ✅ Root route redirect
+@app.route('/')
+def home():
+    return redirect('/transactions/submit')
 
 # Load model and encoder
 model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models'))
@@ -75,7 +80,6 @@ def send_sms_alert(user_id, amount, location):
         print(f"📲 SMS sent: {message.sid}")
     except Exception as e:
         print(f"❌ SMS alert failed: {e}")
-
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -131,6 +135,5 @@ def dashboard():
     return render_template("dashboard.html", data=data)
 
 if __name__ == '__main__':
-    import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
