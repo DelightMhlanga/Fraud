@@ -37,15 +37,14 @@ encoder = joblib.load(os.path.join(model_path, 'location_encoder.pkl'))
 app.config['MODEL'] = model
 app.config['ENCODER'] = encoder
 
-# API key for authentication
-API_KEY = "your_secret_key_here"
+import smtplib
+from email.mime.text import MIMEText
 
-# Email alert configuration
-EMAIL_SENDER = "delightmhlanga82@gmail.com"
+# SendGrid configuration
+SENDGRID_USERNAME = "apikey"  # This stays as 'apikey'
+SENDGRID_API_KEY = "your_actual_sendgrid_api_key"
+EMAIL_SENDER = "delightmhlanga82@gmail.com"  # Must be verified in SendGrid
 EMAIL_RECEIVER = "delightdube341@gmail.com"
-EMAIL_PASSWORD = "myfhzobogrficln"
-
-
 
 def send_email_alert(user_id, amount, location):
     subject = "🚨 Fraud Alert"
@@ -57,14 +56,16 @@ def send_email_alert(user_id, amount, location):
     msg["To"] = EMAIL_RECEIVER
 
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        with smtplib.SMTP("smtp.sendgrid.net", 587) as server:
+            server.starttls()
+            server.login(SENDGRID_USERNAME, SENDGRID_API_KEY)
             server.sendmail(EMAIL_SENDER, EMAIL_RECEIVER, msg.as_string())
         print("✅ Email alert sent successfully.")
     except Exception as e:
         print(f"❌ Email alert failed: {e}")
 
 
+API_KEY = "sk_live_9f8d3a2b7c4e1x9z"
 @app.route('/predict', methods=['POST'])
 def predict():
     auth_header = request.headers.get("Authorization")

@@ -32,19 +32,16 @@ def log_transaction(timestamp, user_id, amount, location, status):
         writer.writerow([timestamp, user_id, amount, location, status])
 
 # ✅ Verified Email and SMS Configuration
-EMAIL_SENDER = "delightmhlanga82@gmail.com"
-EMAIL_RECEIVER = "delightdube341@gmail.com"
-EMAIL_PASSWORD = "lfsiycvdpsazudgk"
+import smtplib
+from email.mime.text import MIMEText
 
-TWILIO_SID = ""
-TWILIO_TOKEN = ""
-TWILIO_NUMBER = ""
-RECIPIENT_NUMBER = ""
+SENDGRID_USERNAME = "apikey"  # This stays as 'apikey'
+SENDGRID_API_KEY = "qG9ZNtE1ThG8diNRKtKIqw.tOgHmjCuDd0nMkWNDpVP9RpSmCEs30yasJjUbIdZHA0"
+EMAIL_SENDER = "delightdube341@gmail.com"
+EMAIL_RECEIVER = "delightmhlanga82@gmail.com"
 
 def send_verification_email(user_id, amount, location, timestamp):
     subject = "🚨 Transaction Verification Needed"
-    base_url = "https://fraud-wkgv.onrender.com"
-
     body = f"""
     A transaction was flagged as potentially fraudulent:<br>
     <strong>User:</strong> {user_id}<br>
@@ -52,8 +49,8 @@ def send_verification_email(user_id, amount, location, timestamp):
     <strong>Location:</strong> {location}<br>
     <strong>Time:</strong> {timestamp}<br><br>
     Please confirm:<br>
-    <a href="{base_url}/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=yes">✅ Yes, it's me</a><br>
-    <a href="{base_url}/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=no">❌ No, not me</a>
+    <a href="https://fraud-wkgv.onrender.com/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=yes">✅ Yes, it's me</a><br>
+    <a href="https://fraud-wkgv.onrender.com/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=no">❌ No, not me</a>
     """
 
     msg = MIMEText(body, 'html')
@@ -62,13 +59,14 @@ def send_verification_email(user_id, amount, location, timestamp):
     msg['To'] = EMAIL_RECEIVER
 
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        with smtplib.SMTP("smtp.sendgrid.net", 587) as server:
+            server.starttls()
+            server.login(SENDGRID_USERNAME, SENDGRID_API_KEY)
             server.sendmail(EMAIL_SENDER, EMAIL_RECEIVER, msg.as_string())
         print("✅ Verification email sent successfully.")
     except Exception as e:
         print(f"❌ Error sending verification email: {e}")
-        
+
 # ✅ Submit Transaction Route
 @transactions_bp.route('/submit', methods=['GET', 'POST'])
 def submit_transaction():
