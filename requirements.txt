@@ -8,6 +8,3 @@ pandas
 twilio
 gunicorn
 
-L5KV85WGWXBMEP9NXW9BWBT1
-
-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
