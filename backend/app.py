@@ -1,11 +1,14 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect
 from flask_login import LoginManager
 import joblib
 import os
 from datetime import datetime
 import csv
-import smtplib
-from email.mime.text import MIMEText
+import pandas as pd
+
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+
 from backend.transactions.routes import transactions_bp
 from backend.auth.routes import auth_bp, login_manager
 
@@ -18,7 +21,7 @@ app = Flask(
 # Secret key for session management
 app.secret_key = 'your_secret_key_here'
 
-# Register login manager and blueprint
+# Register login manager and blueprints
 login_manager.init_app(app)
 app.register_blueprint(auth_bp)
 app.register_blueprint(transactions_bp, url_prefix='/transactions')
@@ -37,35 +40,39 @@ encoder = joblib.load(os.path.join(model_path, 'location_encoder.pkl'))
 app.config['MODEL'] = model
 app.config['ENCODER'] = encoder
 
-import smtplib
-from email.mime.text import MIMEText
-
 # SendGrid configuration
-SENDGRID_USERNAME = "apikey"  # This stays as 'apikey'
-SENDGRID_API_KEY = "your_actual_sendgrid_api_key"
-EMAIL_SENDER = "delightmhlanga82@gmail.com"  # Must be verified in SendGrid
-EMAIL_RECEIVER = "delightdube341@gmail.com"
+
+
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+EMAIL_SENDER = os.getenv("EMAIL_SENDER")
+EMAIL_RECEIVER = os.getenv("EMAIL_RECEIVER")
 
 def send_email_alert(user_id, amount, location):
     subject = "🚨 Fraud Alert"
-    body = f"Fraud detected!\nUser: {user_id}\nAmount: {amount}\nLocation: {location}"
+    body = f"""
+    Fraud detected!<br>
+    <strong>User:</strong> {user_id}<br>
+    <strong>Amount:</strong> ${amount}<br>
+    <strong>Location:</strong> {location}
+    """
 
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = EMAIL_SENDER
-    msg["To"] = EMAIL_RECEIVER
+    message = Mail(
+        from_email=EMAIL_SENDER,
+        to_emails=EMAIL_RECEIVER,
+        subject=subject,
+        html_content=body
+    )
 
     try:
-        with smtplib.SMTP("smtp.sendgrid.net", 587) as server:
-            server.starttls()
-            server.login(SENDGRID_USERNAME, SENDGRID_API_KEY)
-            server.sendmail(EMAIL_SENDER, EMAIL_RECEIVER, msg.as_string())
-        print("✅ Email alert sent successfully.")
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        print(f"✅ Email alert sent. Status: {response.status_code}")
     except Exception as e:
-        print(f"❌ Email alert failed: {e}")
+        print(f"❌ Error sending fraud alert email: {e}")
 
-
+# API key for authentication
 API_KEY = "sk_live_9f8d3a2b7c4e1x9z"
+
 @app.route('/predict', methods=['POST'])
 def predict():
     auth_header = request.headers.get("Authorization")
@@ -80,7 +87,14 @@ def predict():
         location = data.get('location', '')
 
         location_encoded = encoder.transform([location])[0]
-        prediction = model.predict([[amount, location_encoded]])[0]
+
+        # ✅ Use named features to avoid sklearn warning
+        features = pd.DataFrame([{
+            "amount": amount,
+            "location": location_encoded
+        }])
+
+        prediction = model.predict(features)[0]
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         status = "FRAUD" if prediction else "NORMAL"
@@ -95,7 +109,7 @@ def predict():
         if prediction:
             print(f"[ALERT] Fraud detected! User: {user_id}, Amount: {amount}, Location: {location}")
             send_email_alert(user_id, amount, location)
-           
+
         return jsonify({
             'is_fraud': bool(prediction),
             'message': 'Fraudulent transaction' if prediction else 'Transaction appears normal'

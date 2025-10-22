@@ -9,6 +9,10 @@ import smtplib
 from email.mime.text import MIMEText
 from twilio.rest import Client
 from backend.transactions.email import send_email
+import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+
 
 transactions_bp = Blueprint('transactions', __name__, template_folder='templates')
 
@@ -32,38 +36,37 @@ def log_transaction(timestamp, user_id, amount, location, status):
         writer.writerow([timestamp, user_id, amount, location, status])
 
 # ✅ Verified Email and SMS Configuration
-import smtplib
-from email.mime.text import MIMEText
 
-SENDGRID_USERNAME = "apikey"  # This stays as 'apikey'
-SENDGRID_API_KEY = "qG9ZNtE1ThG8diNRKtKIqw.tOgHmjCuDd0nMkWNDpVP9RpSmCEs30yasJjUbIdZHA0"
-EMAIL_SENDER = "delightdube341@gmail.com"
-EMAIL_RECEIVER = "delightmhlanga82@gmail.com"
+SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
+EMAIL_SENDER = os.getenv("EMAIL_SENDER")
+EMAIL_RECEIVER = os.getenv("EMAIL_RECEIVER")
 
 def send_verification_email(user_id, amount, location, timestamp):
     subject = "🚨 Transaction Verification Needed"
-    body = f"""
-    A transaction was flagged as potentially fraudulent:<br>
-    <strong>User:</strong> {user_id}<br>
-    <strong>Amount:</strong> ${amount}<br>
-    <strong>Location:</strong> {location}<br>
-    <strong>Time:</strong> {timestamp}<br><br>
-    Please confirm:<br>
-    <a href="https://fraud-wkgv.onrender.com/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=yes">✅ Yes, it's me</a><br>
-    <a href="https://fraud-wkgv.onrender.com/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=no">❌ No, not me</a>
+    html_content = f"""
+    <p>A transaction was flagged as potentially fraudulent:</p>
+    <ul>
+        <li><strong>User:</strong> {user_id}</li>
+        <li><strong>Amount:</strong> ${amount}</li>
+        <li><strong>Location:</strong> {location}</li>
+        <li><strong>Time:</strong> {timestamp}</li>
+    </ul>
+    <p>Please confirm:</p>
+    <p><a href="https://fraud-wkgv.onrender.com/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=yes">✅ Yes, it's me</a></p>
+    <p><a href="https://fraud-wkgv.onrender.com/verify?user_id={user_id}&amount={amount}&location={location}&timestamp={timestamp}&confirm=no">❌ No, not me</a></p>
     """
 
-    msg = MIMEText(body, 'html')
-    msg['Subject'] = subject
-    msg['From'] = EMAIL_SENDER
-    msg['To'] = EMAIL_RECEIVER
+    message = Mail(
+        from_email=EMAIL_SENDER,
+        to_emails=EMAIL_RECEIVER,
+        subject=subject,
+        html_content=html_content
+    )
 
     try:
-        with smtplib.SMTP("smtp.sendgrid.net", 587) as server:
-            server.starttls()
-            server.login(SENDGRID_USERNAME, SENDGRID_API_KEY)
-            server.sendmail(EMAIL_SENDER, EMAIL_RECEIVER, msg.as_string())
-        print("✅ Verification email sent successfully.")
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
+        print(f"✅ Verification email sent. Status: {response.status_code}")
     except Exception as e:
         print(f"❌ Error sending verification email: {e}")
 
